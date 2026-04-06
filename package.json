@@ -1,0 +1,96 @@
+{
+  "name": "ld-assistant",
+  "version": "1.0.0",
+  "description": "Iron Man L&D Assistant — Offline automation for Learning & Development",
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:vite\" \"npm run dev:electron\"",
+    "dev:vite": "vite",
+    "dev:electron": "wait-on tcp:5173 && electron .",
+    "build": "tsc && vite build && electron-builder",
+    "build:vite": "vite build",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "preview": "vite preview",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "node -e \"require('./dist-electron/db/migrate.js')\"",
+    "lint": "eslint src electron --ext .ts,.tsx"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.24.0",
+    "@dnd-kit/core": "^6.1.0",
+    "@dnd-kit/sortable": "^8.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "@radix-ui/react-alert-dialog": "^1.0.5",
+    "@radix-ui/react-avatar": "^1.0.4",
+    "@radix-ui/react-checkbox": "^1.0.4",
+    "@radix-ui/react-dialog": "^1.0.5",
+    "@radix-ui/react-dropdown-menu": "^2.0.6",
+    "@radix-ui/react-label": "^2.0.2",
+    "@radix-ui/react-popover": "^1.0.7",
+    "@radix-ui/react-progress": "^1.0.3",
+    "@radix-ui/react-select": "^2.0.0",
+    "@radix-ui/react-separator": "^1.0.3",
+    "@radix-ui/react-slider": "^1.1.2",
+    "@radix-ui/react-slot": "^1.0.2",
+    "@radix-ui/react-tabs": "^1.0.4",
+    "@radix-ui/react-toast": "^1.1.5",
+    "@radix-ui/react-tooltip": "^1.0.7",
+    "better-sqlite3": "^9.4.3",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.0",
+    "date-fns": "^3.3.1",
+    "docxtemplater": "^3.47.0",
+    "drizzle-orm": "^0.30.7",
+    "lucide-react": "^0.358.0",
+    "ollama": "^0.5.0",
+    "papaparse": "^5.4.1",
+    "pizzip": "^3.1.6",
+    "react": "^18.2.0",
+    "react-big-calendar": "^1.8.7",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.22.3",
+    "tailwind-merge": "^2.2.1",
+    "tailwindcss-animate": "^1.0.7",
+    "zustand": "^4.5.2"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.9",
+    "@types/node": "^20.11.25",
+    "@types/papaparse": "^5.3.14",
+    "@types/react": "^18.2.64",
+    "@types/react-big-calendar": "^1.8.9",
+    "@types/react-dom": "^18.2.21",
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.18",
+    "concurrently": "^8.2.2",
+    "drizzle-kit": "^0.20.14",
+    "electron": "^29.1.4",
+    "electron-builder": "^24.13.3",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.4.2",
+    "vite": "^5.1.6",
+    "vite-plugin-electron": "^0.28.4",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.trainnovation.ld-assistant",
+    "productName": "L&D Assistant",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "assets/**/*"
+    ],
+    "linux": {
+      "target": "deb",
+      "icon": "assets/icons/app-icon.png"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icons/app-icon.ico"
+    }
+  }
+}
