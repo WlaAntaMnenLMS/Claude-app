@@ -5,6 +5,7 @@ import StatusBadge from '@/components/shared/StatusBadge'
 import InstructorForm from './InstructorForm'
 import InstructorProfile from './InstructorProfile'
 import HiringKanban from './HiringKanban'
+import ExportButton from '@/components/shared/ExportButton'
 
 export default function InstructorPage() {
   const [instructors, setInstructors] = useState<any[]>([])
@@ -47,12 +48,15 @@ export default function InstructorPage() {
             {instructors.length}
           </span>
         </div>
+        <div className="flex items-center gap-2">
+          <ExportButton module="instructors" />
         <button
           onClick={() => { setEditTarget(null); setShowForm(true) }}
           className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm hover:bg-primary/90 transition-colors"
         >
           <Plus className="w-4 h-4" /> Add Instructor
         </button>
+        </div>
       </div>
 
       {/* Controls */}

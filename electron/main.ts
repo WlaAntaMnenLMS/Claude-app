@@ -8,6 +8,11 @@ import { registerCertificateIpc } from './ipc/certificate.ipc'
 import { registerTranscriptIpc } from './ipc/transcript.ipc'
 import { registerDoxxIpc } from './ipc/doxx.ipc'
 import { registerAgentIpc } from './ipc/agent.ipc'
+import { registerAuthIpc } from './ipc/auth.ipc'
+import { registerNetworkIpc } from './ipc/network.ipc'
+import { registerSearchIpc } from './ipc/search.ipc'
+import { registerCommunicationIpc } from './ipc/communication.ipc'
+import { registerExportIpc } from './ipc/export.ipc'
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged
 
@@ -44,10 +49,8 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-  // Initialize DB
   getDb()
 
-  // Register all IPC handlers
   registerInstructorIpc()
   registerDemoIpc(mainWindow)
   registerProposalIpc()
@@ -55,18 +58,17 @@ app.whenReady().then(() => {
   registerTranscriptIpc()
   registerDoxxIpc()
   registerAgentIpc()
+  registerAuthIpc()
+  registerNetworkIpc(mainWindow)
+  registerSearchIpc()
+  registerCommunicationIpc()
+  registerExportIpc()
 
-  // Handle open file in OS
-  ipcMain.handle('shell:openPath', async (_e, filePath: string) => {
-    await shell.openPath(filePath)
-  })
-  ipcMain.handle('shell:showItemInFolder', async (_e, filePath: string) => {
-    shell.showItemInFolder(filePath)
-  })
+  ipcMain.handle('shell:openPath', async (_e, filePath: string) => { await shell.openPath(filePath) })
+  ipcMain.handle('shell:showItemInFolder', async (_e, filePath: string) => { shell.showItemInFolder(filePath) })
 
   createWindow()
 
-  // Check for upcoming demos every 5 minutes
   checkUpcomingDemos()
   setInterval(checkUpcomingDemos, 5 * 60 * 1000)
 
@@ -84,25 +86,19 @@ function checkUpcomingDemos() {
     const db = getDb()
     const now = Math.floor(Date.now() / 1000)
     const in24h = now + 24 * 60 * 60
-
     const upcoming = db.prepare(`
       SELECT d.*, i.full_name
-      FROM demo_sessions d
-      JOIN instructors i ON d.instructor_id = i.id
-      WHERE d.status = 'scheduled'
-        AND d.scheduled_at BETWEEN ? AND ?
+      FROM demo_sessions d JOIN instructors i ON d.instructor_id = i.id
+      WHERE d.status = 'scheduled' AND d.scheduled_at BETWEEN ? AND ?
     `).all(now, in24h) as any[]
-
     for (const demo of upcoming) {
-      const minutesUntil = Math.floor((demo.scheduled_at - now) / 60)
-      if (minutesUntil <= 60 && Notification.isSupported()) {
+      const mins = Math.floor((demo.scheduled_at - now) / 60)
+      if (mins <= 60 && Notification.isSupported()) {
         new Notification({
           title: 'Upcoming Demo Session',
-          body: `Demo with ${demo.full_name} in ${minutesUntil} minutes — ${demo.topic || 'No topic set'}`,
+          body: `Demo with ${demo.full_name} in ${mins} minutes — ${demo.topic || 'No topic set'}`,
         }).show()
       }
     }
-  } catch (err) {
-    console.error('Error checking demos:', err)
-  }
+  } catch (err) { console.error('Demo check error:', err) }
 }

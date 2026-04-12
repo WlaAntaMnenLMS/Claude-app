@@ -3,6 +3,7 @@ import { FileText, Plus, Search, Download, Trash2, Edit } from 'lucide-react'
 import { api } from '@/lib/ipc'
 import { formatDate } from '@/lib/utils'
 import StatusBadge from '@/components/shared/StatusBadge'
+import ExportButton from '@/components/shared/ExportButton'
 import ProposalWizard from './ProposalWizard'
 import TemplateManager from './TemplateManager'
 
@@ -51,12 +52,15 @@ export default function ProposalPage() {
           <FileText className="w-5 h-5 text-purple-400" />
           <h1 className="text-xl font-bold">Proposals</h1>
         </div>
-        <button
+        <div className="flex items-center gap-2">
+          <ExportButton module="proposals" />
+          <button
           onClick={() => { setEditTarget(null); setShowWizard(true) }}
           className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm hover:bg-primary/90"
         >
           <Plus className="w-4 h-4" /> New Proposal
-        </button>
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}

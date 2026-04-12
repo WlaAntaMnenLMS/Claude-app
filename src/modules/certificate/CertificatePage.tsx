@@ -4,6 +4,7 @@ import { api } from '@/lib/ipc'
 import { formatDate } from '@/lib/utils'
 import Papa from 'papaparse'
 import LearnerManager from './LearnerManager'
+import ExportButton from '@/components/shared/ExportButton'
 import BulkFillWizard from './BulkFillWizard'
 
 export default function CertificatePage() {
@@ -30,14 +31,18 @@ export default function CertificatePage() {
             {certificates.length} issued
           </span>
         </div>
-        <button
-          onClick={() => setShowWizard(true)}
-          disabled={templates.length === 0}
-          title={templates.length === 0 ? 'Upload a template first' : ''}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm hover:bg-primary/90 disabled:opacity-50"
-        >
-          <Plus className="w-4 h-4" /> Bulk Fill
-        </button>
+        <div className="flex items-center gap-2">
+          <ExportButton module="certificates" />
+          <ExportButton module="learners" className="text-xs" />
+          <button
+            onClick={() => setShowWizard(true)}
+            disabled={templates.length === 0}
+            title={templates.length === 0 ? 'Upload a template first' : ''}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm hover:bg-primary/90 disabled:opacity-50"
+          >
+            <Plus className="w-4 h-4" /> Bulk Fill
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}

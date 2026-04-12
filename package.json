@@ -33,9 +33,12 @@
     "better-sqlite3": "^9.4.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
+    "cors": "^2.8.6",
     "date-fns": "^3.3.1",
     "docxtemplater": "^3.47.0",
     "drizzle-orm": "^0.30.7",
+    "exceljs": "^4.4.0",
+    "express": "^5.2.1",
     "lucide-react": "^0.358.0",
     "ollama": "^0.5.0",
     "papaparse": "^5.4.1",
@@ -49,8 +52,11 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
+    "@electron/rebuild": "^3.6.0",
     "@types/better-sqlite3": "^7.6.9",
-    "@types/node": "^20.11.25",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^20.19.39",
     "@types/papaparse": "^5.3.14",
     "@types/react": "^18.2.64",
     "@types/react-big-calendar": "^1.8.9",
@@ -66,8 +72,7 @@
     "typescript": "^5.4.2",
     "vite": "^5.1.6",
     "vite-plugin-electron": "^0.28.4",
-    "wait-on": "^7.2.0",
-    "@electron/rebuild": "^3.6.0"
+    "wait-on": "^7.2.0"
   },
   "build": {
     "appId": "com.trainnovation.ld-assistant",
