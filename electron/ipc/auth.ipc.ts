@@ -51,17 +51,4 @@ export function registerAuthIpc() {
     db.prepare(`DELETE FROM users WHERE id = ?`).run(id)
     return { success: true }
   })
-
-  // Get network settings
-  ipcMain.handle('network:getSettings', () => {
-    return db.prepare(`SELECT * FROM network_settings LIMIT 1`).get()
-  })
-
-  // Save network settings
-  ipcMain.handle('network:saveSettings', (_e, data: { mode: string; server_port?: number; server_pin?: string; server_host?: string }) => {
-    db.prepare(`
-      UPDATE network_settings SET mode = ?, server_port = ?, server_pin = ?, server_host = ?, updated_at = unixepoch()
-    `).run(data.mode, data.server_port ?? 4765, data.server_pin ?? null, data.server_host ?? null)
-    return { success: true }
-  })
 }

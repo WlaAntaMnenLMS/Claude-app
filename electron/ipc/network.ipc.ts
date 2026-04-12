@@ -31,17 +31,15 @@ export function registerNetworkIpc(win: BrowserWindow | null) {
 
   ipcMain.handle('network:isRunning', () => isServerRunning())
 
-  // Test connection to a remote server (client mode)
-  ipcMain.handle('network:testConnection', async (_e, host: string, port: number) => {
-    try {
-      const { default: fetch } = await import('electron-fetch' as any).catch(() => ({ default: null }))
-      const response = await (fetch
-        ? fetch(`http://${host}:${port}/ping`, { timeout: 3000 })
-        : (await import('http')).request
-      )
-      return { success: true }
-    } catch {
-      return { success: false, error: 'Cannot reach server. Check IP and port.' }
-    }
+  // Test connection to a remote server using Node's built-in http
+  ipcMain.handle('network:testConnection', (_e, host: string, port: number) => {
+    return new Promise(resolve => {
+      const http = require('http')
+      const req = http.get({ host, port, path: '/ping', timeout: 3000 }, (res: any) => {
+        resolve({ success: res.statusCode === 200 })
+      })
+      req.on('error', () => resolve({ success: false, error: 'Cannot reach server. Check IP and port.' }))
+      req.on('timeout', () => { req.destroy(); resolve({ success: false, error: 'Connection timed out.' }) })
+    })
   })
 }
