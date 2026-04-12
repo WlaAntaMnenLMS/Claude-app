@@ -4,14 +4,9 @@
   "description": "Iron Man L&D Assistant — Offline automation for Learning & Development",
   "main": "dist-electron/main.js",
   "scripts": {
-    "dev": "concurrently \"npm run dev:vite\" \"npm run dev:electron\"",
-    "dev:vite": "vite",
-    "dev:electron": "wait-on tcp:5173 && electron .",
-    "build": "tsc && vite build && electron-builder",
-    "build:vite": "vite build",
-    "build:electron": "tsc -p tsconfig.electron.json",
+    "dev": "vite",
+    "build": "vite build && electron-builder",
     "preview": "vite preview",
-
     "db:generate": "drizzle-kit generate",
     "lint": "eslint src electron --ext .ts,.tsx"
   },
