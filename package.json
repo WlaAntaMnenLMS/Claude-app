@@ -11,7 +11,7 @@
     "build:vite": "vite build",
     "build:electron": "tsc -p tsconfig.electron.json",
     "preview": "vite preview",
-    "postinstall": "electron-rebuild -f -w better-sqlite3",
+
     "db:generate": "drizzle-kit generate",
     "lint": "eslint src electron --ext .ts,.tsx"
   },
