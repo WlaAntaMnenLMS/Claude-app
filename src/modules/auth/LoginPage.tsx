@@ -90,12 +90,6 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Default creds hint */}
-        <div className="mt-6 p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground space-y-1">
-          <p className="font-medium text-foreground">Default accounts:</p>
-          <p>Manager: ahmed@trainnovation.com / PIN: 1234</p>
-          <p>Specialist: specialist@trainnovation.com / PIN: 0000</p>
-        </div>
       </div>
     </div>
   )

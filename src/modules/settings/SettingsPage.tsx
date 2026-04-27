@@ -19,6 +19,7 @@ function loadDefaults(): CompanyDefaults {
 }
 
 const EXPORT_KEY = 'ld_export_folder'
+const DRIVE_SYNC_KEY = 'ld_drive_sync'
 
 export default function SettingsPage() {
   const { user, isManager } = useAuthStore()
@@ -33,7 +34,7 @@ export default function SettingsPage() {
 
   // ── Export folder ─────────────────────────────────────────────────────────────
   const [exportFolder, setExportFolder] = useState(localStorage.getItem(EXPORT_KEY) || '')
-  const [driveSync, setDriveSync] = useState(false)
+  const [driveSync, setDriveSync] = useState(localStorage.getItem(DRIVE_SYNC_KEY) === 'true')
   const [folderSaved, setFolderSaved] = useState(false)
 
   // ── Company defaults ──────────────────────────────────────────────────────────
@@ -81,7 +82,14 @@ export default function SettingsPage() {
 
   function saveFolder() {
     localStorage.setItem(EXPORT_KEY, exportFolder)
+    localStorage.setItem(DRIVE_SYNC_KEY, String(driveSync))
     setFolderSaved(true); setTimeout(() => setFolderSaved(false), 2000)
+  }
+
+  function toggleDriveSync() {
+    const next = !driveSync
+    setDriveSync(next)
+    localStorage.setItem(DRIVE_SYNC_KEY, String(next))
   }
 
   function saveDefaults() {
@@ -219,7 +227,7 @@ export default function SettingsPage() {
 
           <label className="flex items-center gap-3 cursor-pointer select-none">
             <div
-              onClick={() => setDriveSync(v => !v)}
+              onClick={toggleDriveSync}
               className={`relative w-10 h-5 rounded-full transition-colors ${driveSync ? 'bg-primary' : 'bg-secondary border border-border'}`}
             >
               <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${driveSync ? 'translate-x-5' : ''}`} />

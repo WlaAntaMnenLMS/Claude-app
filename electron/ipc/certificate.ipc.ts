@@ -36,6 +36,9 @@ export function registerCertificateIpc() {
     return db().prepare('SELECT * FROM learners WHERE id = ?').get(id)
   })
   ipcMain.handle('learner:delete', (_e, id: number) => {
+    // Remove linked certificates and transcripts first to avoid FK constraint errors
+    db().prepare('DELETE FROM certificates WHERE learner_id = ?').run(id)
+    db().prepare('DELETE FROM transcripts WHERE learner_id = ?').run(id)
     db().prepare('DELETE FROM learners WHERE id = ?').run(id)
     return { success: true }
   })

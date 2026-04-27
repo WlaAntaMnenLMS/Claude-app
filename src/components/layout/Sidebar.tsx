@@ -17,16 +17,16 @@ export default function Sidebar({ open, onToggle, onSearchOpen }: Props) {
   const { user, setUser, isManager } = useAuthStore()
 
   const NAV = [
-    { to: '/dashboard',      icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/instructors',    icon: Users,            label: 'Instructors' },
-    { to: '/demos',          icon: CalendarDays,     label: 'Demo Sessions' },
-    { to: '/proposals',      icon: FileText,         label: 'Proposals' },
-    { to: '/certificates',   icon: Award,            label: 'Certificates' },
-    { to: '/transcripts',    icon: BookOpen,         label: 'Transcripts' },
-    { to: '/doxx',           icon: Package,          label: 'Doxx Orders' },
-    { to: '/communications', icon: MessageSquare,    label: 'Messages' },
-    { to: '/agent',          icon: Bot,              label: 'JARVIS Agent' },
-  ]
+    { to: '/dashboard',      icon: LayoutDashboard, label: 'Dashboard',     managerOnly: false },
+    { to: '/instructors',    icon: Users,            label: 'Instructors',   managerOnly: false },
+    { to: '/demos',          icon: CalendarDays,     label: 'Demo Sessions', managerOnly: false },
+    { to: '/proposals',      icon: FileText,         label: 'Proposals',     managerOnly: false },
+    { to: '/certificates',   icon: Award,            label: 'Certificates',  managerOnly: true },
+    { to: '/transcripts',    icon: BookOpen,         label: 'Transcripts',   managerOnly: true },
+    { to: '/doxx',           icon: Package,          label: 'Doxx Orders',   managerOnly: true },
+    { to: '/communications', icon: MessageSquare,    label: 'Messages',      managerOnly: false },
+    { to: '/agent',          icon: Bot,              label: 'JARVIS Agent',  managerOnly: false },
+  ].filter(item => !item.managerOnly || isManager())
 
   const BOTTOM_NAV = [
     ...(isManager() ? [{ to: '/users', icon: ShieldCheck, label: 'Users' }] : []),

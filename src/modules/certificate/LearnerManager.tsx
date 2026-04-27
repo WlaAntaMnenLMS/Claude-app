@@ -116,7 +116,11 @@ export default function LearnerManager() {
                   <td className="px-3 py-2 text-muted-foreground">{l.phone || '—'}</td>
                   <td className="px-3 py-2 text-muted-foreground">{l.organization || '—'}</td>
                   <td className="px-3 py-2">
-                    <button onClick={async () => { await api.learner.delete(l.id); load() }}>
+                    <button onClick={async () => {
+                      if (!confirm(`Delete ${l.full_name}? This will also remove their linked certificates and transcripts.`)) return
+                      await api.learner.delete(l.id)
+                      load()
+                    }}>
                       <Trash2 className="w-3.5 h-3.5 text-destructive" />
                     </button>
                   </td>

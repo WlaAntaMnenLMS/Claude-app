@@ -15,10 +15,15 @@ import UserManagementPage from './modules/auth/UserManagementPage'
 import SettingsPage from './modules/settings/SettingsPage'
 import { useAuthStore } from './store/auth.store'
 
+function ManagerOnly({ children }: { children: React.ReactNode }) {
+  const user = useAuthStore(s => s.user)
+  if (user?.role !== 'manager') return <Navigate to="/dashboard" replace />
+  return <>{children}</>
+}
+
 export default function App() {
   const user = useAuthStore(s => s.user)
 
-  // Persist session across refreshes in dev
   useEffect(() => {
     const saved = sessionStorage.getItem('ld_user')
     if (saved && !user) {
@@ -41,15 +46,13 @@ export default function App() {
         <Route path="/instructors"    element={<InstructorPage />} />
         <Route path="/demos"          element={<DemoPage />} />
         <Route path="/proposals"      element={<ProposalPage />} />
-        <Route path="/certificates"   element={<CertificatePage />} />
-        <Route path="/transcripts"    element={<TranscriptPage />} />
-        <Route path="/doxx"           element={<DoxxPage />} />
         <Route path="/agent"          element={<AgentPage />} />
         <Route path="/communications" element={<CommunicationPage />} />
         <Route path="/settings"       element={<SettingsPage />} />
-        {user.role === 'manager' && (
-          <Route path="/users" element={<UserManagementPage />} />
-        )}
+        <Route path="/certificates" element={<ManagerOnly><CertificatePage /></ManagerOnly>} />
+        <Route path="/transcripts"  element={<ManagerOnly><TranscriptPage /></ManagerOnly>} />
+        <Route path="/doxx"         element={<ManagerOnly><DoxxPage /></ManagerOnly>} />
+        <Route path="/users"        element={<ManagerOnly><UserManagementPage /></ManagerOnly>} />
       </Routes>
     </AppShell>
   )
