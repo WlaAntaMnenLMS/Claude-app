@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import { CalendarDays, Plus, List, Calendar } from 'lucide-react'
+import { CalendarDays, Plus, CalendarPlus } from 'lucide-react'
 import { api } from '@/lib/ipc'
-import { formatDateTime, toUnixTs } from '@/lib/utils'
+import { formatDateTime } from '@/lib/utils'
 import StatusBadge from '@/components/shared/StatusBadge'
 import DemoForm from './DemoForm'
 import DemoFeedbackForm from './DemoFeedbackForm'
+import { downloadIcs } from '@/lib/ics'
 
 export default function DemoPage() {
   const [demos, setDemos] = useState<any[]>([])
@@ -26,6 +27,19 @@ export default function DemoPage() {
     if (!confirm('Delete this demo session?')) return
     await api.demo.delete(id)
     load()
+  }
+
+  function handleDownloadIcs(demo: any) {
+    downloadIcs(
+      {
+        title: `Demo: ${demo.instructor_name || 'Instructor'} — ${demo.topic || 'No topic'}`,
+        startUnix: demo.scheduled_at,
+        durationMins: demo.duration_mins || 60,
+        location: demo.location || '',
+        description: `Instructor demo session.\nInstructor: ${demo.instructor_name || ''}\nTopic: ${demo.topic || ''}`,
+      },
+      `demo-${demo.instructor_name?.replace(/\s+/g, '-') || demo.id}`
+    )
   }
 
   return (
@@ -90,12 +104,21 @@ export default function DemoPage() {
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 {demo.status === 'scheduled' && (
-                  <button
-                    onClick={() => setFeedbackTarget(demo)}
-                    className="px-2.5 py-1 text-xs bg-green-500/20 text-green-300 rounded-lg hover:bg-green-500/30"
-                  >
-                    Submit Feedback
-                  </button>
+                  <>
+                    <button
+                      onClick={() => handleDownloadIcs(demo)}
+                      className="p-1.5 hover:bg-accent rounded-lg text-muted-foreground hover:text-foreground"
+                      title="Download calendar invite (.ics)"
+                    >
+                      <CalendarPlus className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => setFeedbackTarget(demo)}
+                      className="px-2.5 py-1 text-xs bg-green-500/20 text-green-300 rounded-lg hover:bg-green-500/30"
+                    >
+                      Submit Feedback
+                    </button>
+                  </>
                 )}
                 <button
                   onClick={() => handleDelete(demo.id)}

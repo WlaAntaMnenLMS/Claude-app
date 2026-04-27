@@ -67,6 +67,7 @@ function initSchema(db: Database.Database) {
       name       TEXT NOT NULL,
       content    TEXT NOT NULL,
       variables  TEXT,
+      is_premium INTEGER DEFAULT 0,
       created_at INTEGER DEFAULT (unixepoch()),
       updated_at INTEGER DEFAULT (unixepoch())
     );
@@ -225,6 +226,136 @@ function initSchema(db: Database.Database) {
   const netCount = (db.prepare('SELECT COUNT(*) as c FROM network_settings').get() as any).c
   if (netCount === 0) {
     db.prepare(`INSERT INTO network_settings (mode, server_port) VALUES ('local', 4765)`).run()
+  }
+
+  // Migration: add is_premium column if missing (safe on existing DBs)
+  try {
+    db.prepare('ALTER TABLE proposal_templates ADD COLUMN is_premium INTEGER DEFAULT 0').run()
+  } catch { /* column already exists */ }
+
+  // Seed Naguib Selim premium proposal template
+  const ptCount = (db.prepare('SELECT COUNT(*) as c FROM proposal_templates').get() as any).c
+  if (ptCount === 0) {
+    const naguibContent = `# {{program_name}} Training Proposal
+
+**Prepared for:** {{client_name}}
+**Industry:** {{client_industry}}
+**Date:** {{proposal_date}}
+**Prepared by:** {{sender_name}} — {{sender_title}}
+**Vendor:** {{vendor_name}}
+
+---
+
+## Executive Summary
+
+Dear {{client_contact_name}},
+
+Thank you for the opportunity to present this proposal for {{client_name}}. We at {{vendor_name}} are pleased to offer a customized {{program_name}} program tailored to your organization's specific needs and goals.
+
+{{executive_summary}}
+
+---
+
+## Program Overview
+
+**Program Name:** {{program_name}}
+**Target Audience:** {{target_audience}}
+**Number of Participants:** {{participant_count}}
+**Total Duration:** {{total_duration}}
+**Language:** {{language}}
+**Delivery Mode:** {{delivery_mode}}
+
+---
+
+## Learning Objectives
+
+By the end of this program, participants will be able to:
+
+1. {{objective_1}}
+2. {{objective_2}}
+3. {{objective_3}}
+4. {{objective_4}}
+
+---
+
+## Program Tracks & Modules
+
+### Track 1: {{track_1_name}}
+
+| Module | Topic | Duration |
+|--------|-------|----------|
+| 1 | {{module_1_topic}} | {{module_1_duration}} |
+| 2 | {{module_2_topic}} | {{module_2_duration}} |
+| 3 | {{module_3_topic}} | {{module_3_duration}} |
+
+### Track 2: {{track_2_name}}
+
+| Module | Topic | Duration |
+|--------|-------|----------|
+| 4 | {{module_4_topic}} | {{module_4_duration}} |
+| 5 | {{module_5_topic}} | {{module_5_duration}} |
+
+---
+
+## Schedule & Timeline
+
+{{schedule_details}}
+
+**Start Date:** {{start_date}}
+**End Date:** {{end_date}}
+
+---
+
+## Methodology
+
+{{methodology_description}}
+
+Our approach combines:
+- {{method_1}}
+- {{method_2}}
+- {{method_3}}
+
+---
+
+## Investment
+
+| Item | Amount |
+|------|--------|
+| Program Fee ({{participant_count}} participants) | {{program_fee}} |
+| Materials & Resources | {{materials_fee}} |
+| **Total Investment** | **{{total_fee}}** |
+
+**Payment Terms:** {{payment_terms}}
+
+---
+
+## About {{vendor_name}}
+
+{{vendor_description}}
+
+---
+
+## Next Steps
+
+1. Review this proposal and share feedback
+2. Schedule a follow-up meeting to finalize scope
+3. Sign the service agreement
+4. Confirm participant list and logistics
+
+---
+
+*This proposal is valid for {{validity_days}} days from {{proposal_date}}.*
+
+**{{sender_name}}**
+{{sender_title}}
+{{vendor_name}}
+{{sender_email}}`
+
+    const naguibVars = [...new Set((naguibContent.match(/\{\{(\w+)\}\}/g) || []).map((m: string) => m.slice(2, -2)))]
+    db.prepare(`
+      INSERT INTO proposal_templates (name, content, variables, is_premium)
+      VALUES (?, ?, ?, 1)
+    `).run('Full Multi-Page Proposal (Naguib Selim Style)', naguibContent, JSON.stringify(naguibVars))
   }
 
   // Seed default communication templates
