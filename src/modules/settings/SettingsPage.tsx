@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   Server, Wifi, WifiOff, Copy, Check, RefreshCw, Users,
-  FolderOpen, CalendarDays, Building2, Save,
+  FolderOpen, CalendarDays, Building2, Save, Cpu,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 
@@ -20,6 +20,7 @@ function loadDefaults(): CompanyDefaults {
 
 const EXPORT_KEY = 'ld_export_folder'
 const DRIVE_SYNC_KEY = 'ld_drive_sync'
+const RBC_PATH_KEY = 'ld_rbc_exe_path'
 
 export default function SettingsPage() {
   const { user, isManager } = useAuthStore()
@@ -36,6 +37,10 @@ export default function SettingsPage() {
   const [exportFolder, setExportFolder] = useState(localStorage.getItem(EXPORT_KEY) || '')
   const [driveSync, setDriveSync] = useState(localStorage.getItem(DRIVE_SYNC_KEY) === 'true')
   const [folderSaved, setFolderSaved] = useState(false)
+
+  // ── RBC Generator path ────────────────────────────────────────────────────────
+  const [rbcPath, setRbcPath] = useState(localStorage.getItem(RBC_PATH_KEY) || 'E:\\Certificates\\RBC Generator.exe')
+  const [rbcSaved, setRbcSaved] = useState(false)
 
   // ── Company defaults ──────────────────────────────────────────────────────────
   const [defaults, setDefaults] = useState<CompanyDefaults>({
@@ -95,6 +100,11 @@ export default function SettingsPage() {
   function saveDefaults() {
     localStorage.setItem(DEFAULTS_KEY, JSON.stringify(defaults))
     setDefaultsSaved(true); setTimeout(() => setDefaultsSaved(false), 2000)
+  }
+
+  function saveRbc() {
+    localStorage.setItem(RBC_PATH_KEY, rbcPath)
+    setRbcSaved(true); setTimeout(() => setRbcSaved(false), 2000)
   }
 
   function flash(setter: (v: string) => void, msg: string) {
@@ -320,6 +330,28 @@ export default function SettingsPage() {
             <Save className="w-3.5 h-3.5" /> Save Defaults
           </button>
           {defaultsSaved && <p className="text-sm text-green-400">Saved!</p>}
+        </div>
+      </Section>
+
+      {/* ── RBC Generator ─────────────────────────────────────────────────────── */}
+      <Section icon={<Cpu className="w-5 h-5 text-orange-400" />} bg="bg-orange-500/10"
+        title="RBC Generator" sub="Path to the RBC Generator .exe for certificate and transcript production">
+        <div className="space-y-3">
+          <div>
+            <label className={label}>RBC Generator .exe path</label>
+            <input value={rbcPath} onChange={e => setRbcPath(e.target.value)}
+              placeholder="E:\Certificates\RBC Generator.exe" className={input} />
+            <p className="mt-1.5 text-xs text-muted-foreground">
+              Used by the <strong>RBC Export</strong> tab in Certificates to launch the generator directly.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <button onClick={saveRbc}
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90">
+              <Save className="w-3.5 h-3.5" /> Save Path
+            </button>
+            {rbcSaved && <p className="text-sm text-green-400">Saved!</p>}
+          </div>
         </div>
       </Section>
 

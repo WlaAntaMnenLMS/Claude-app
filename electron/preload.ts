@@ -127,6 +127,14 @@ contextBridge.exposeInMainWorld('api', {
     sentHistory: ()                          => ipcRenderer.invoke('comm:sentHistory'),
   },
 
+  // ── RBC Generator integration ────────────────────────────────────────
+  rbc: {
+    programs:       ()                   => ipcRenderer.invoke('rbc:programs'),
+    exportWorkbook: (data: any)          => ipcRenderer.invoke('rbc:exportWorkbook', data),
+    launch:         (exePath: string)    => ipcRenderer.invoke('rbc:launch', exePath),
+    openFolder:     (folderPath: string) => ipcRenderer.invoke('rbc:openFolder', folderPath),
+  },
+
   // ── Excel export ─────────────────────────────────────────────────────
   export: {
     toExcel:  (module: string) => ipcRenderer.invoke('export:toExcel', module),

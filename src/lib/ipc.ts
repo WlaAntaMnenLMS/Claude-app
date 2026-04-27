@@ -75,6 +75,12 @@ declare global {
         clearHistory: () => Promise<any>
         getHistory: () => Promise<any[]>
       }
+      rbc: {
+        programs: () => Promise<string[]>
+        exportWorkbook: (data: any) => Promise<{ outputPath: string }>
+        launch: (exePath: string) => Promise<{ success: boolean; error?: string }>
+        openFolder: (folderPath: string) => Promise<{ success: boolean }>
+      }
       shell: {
         openPath: (p: string) => Promise<void>
         showItemInFolder: (p: string) => Promise<void>

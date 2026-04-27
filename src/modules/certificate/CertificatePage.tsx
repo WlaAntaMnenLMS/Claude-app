@@ -6,11 +6,12 @@ import Papa from 'papaparse'
 import LearnerManager from './LearnerManager'
 import ExportButton from '@/components/shared/ExportButton'
 import BulkFillWizard from './BulkFillWizard'
+import RBCExport from './RBCExport'
 
 export default function CertificatePage() {
   const [certificates, setCertificates] = useState<any[]>([])
   const [templates, setTemplates] = useState<any[]>([])
-  const [tab, setTab] = useState<'certificates' | 'learners' | 'templates'>('certificates')
+  const [tab, setTab] = useState<'certificates' | 'learners' | 'templates' | 'rbc'>('certificates')
   const [showWizard, setShowWizard] = useState(false)
 
   async function load() {
@@ -47,17 +48,18 @@ export default function CertificatePage() {
 
       {/* Tabs */}
       <div className="flex gap-1 bg-secondary rounded-lg p-1 w-fit">
-        {(['certificates', 'learners', 'templates'] as const).map(t => (
+        {(['certificates', 'learners', 'templates', 'rbc'] as const).map(t => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-3 py-1 rounded text-sm capitalize transition-colors ${
               tab === t ? 'bg-card text-foreground' : 'text-muted-foreground hover:text-foreground'
             }`}>
-            {t}
+            {t === 'rbc' ? 'RBC Export' : t}
           </button>
         ))}
       </div>
 
       {tab === 'learners' && <LearnerManager />}
+      {tab === 'rbc' && <RBCExport />}
 
       {tab === 'templates' && (
         <TemplatesTab templates={templates} onUpdate={load} />
