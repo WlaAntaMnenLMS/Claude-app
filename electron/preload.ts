@@ -105,12 +105,15 @@ contextBridge.exposeInMainWorld('api', {
 
   // ── Network ──────────────────────────────────────────────────────────
   network: {
-    getSettings:  ()                  => ipcRenderer.invoke('network:getSettings'),
-    saveSettings: (data: any)         => ipcRenderer.invoke('network:saveSettings', data),
-    startServer:  (port: number, pin: string) => ipcRenderer.invoke('network:startServer', port, pin),
-    stopServer:   ()                  => ipcRenderer.invoke('network:stopServer'),
-    isRunning:    ()                  => ipcRenderer.invoke('network:isRunning'),
-    testConnection: (host: string, port: number) => ipcRenderer.invoke('network:testConnection', host, port),
+    getSettings:      ()                         => ipcRenderer.invoke('network:getSettings'),
+    saveSettings:     (data: any)                => ipcRenderer.invoke('network:saveSettings', data),
+    startServer:      (port: number, pin: string)=> ipcRenderer.invoke('network:startServer', port, pin),
+    stopServer:       ()                         => ipcRenderer.invoke('network:stopServer'),
+    isRunning:        ()                         => ipcRenderer.invoke('network:isRunning'),
+    testConnection:   (host: string, port: number) => ipcRenderer.invoke('network:testConnection', host, port),
+    getDbPath:        ()                         => ipcRenderer.invoke('network:getDbPath'),
+    setDbPath:        (p: string)                => ipcRenderer.invoke('network:setDbPath', p),
+    getDefaultDbPath: ()                         => ipcRenderer.invoke('network:getDefaultDbPath'),
   },
 
   // ── Search ───────────────────────────────────────────────────────────

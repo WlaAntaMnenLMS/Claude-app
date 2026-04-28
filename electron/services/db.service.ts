@@ -5,14 +5,33 @@ import { app } from 'electron'
 
 let db: Database.Database | null = null
 
+function getConfigPath(): string {
+  const userDataPath = app ? app.getPath('userData') : path.join(process.cwd(), 'data')
+  return path.join(userDataPath, 'db-config.json')
+}
+
+export function getDbFilePath(): string {
+  try {
+    const cfg = JSON.parse(fs.readFileSync(getConfigPath(), 'utf8'))
+    if (cfg.dbPath && cfg.dbPath.trim()) return cfg.dbPath.trim()
+  } catch {}
+  const userDataPath = app ? app.getPath('userData') : path.join(process.cwd(), 'data')
+  return path.join(userDataPath, 'db', 'ld-assistant.db')
+}
+
+export function setDbFilePath(newPath: string) {
+  fs.writeFileSync(getConfigPath(), JSON.stringify({ dbPath: newPath }))
+  // Close current connection so next getDb() opens the new file
+  if (db) { try { db.close() } catch {} db = null }
+}
+
 export function getDb(): Database.Database {
   if (db) return db
 
-  const userDataPath = app ? app.getPath('userData') : path.join(process.cwd(), 'data')
-  const dbDir = path.join(userDataPath, 'db')
+  const dbPath = getDbFilePath()
+  const dbDir = path.dirname(dbPath)
   if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true })
 
-  const dbPath = path.join(dbDir, 'ld-assistant.db')
   db = new Database(dbPath)
   db.pragma('journal_mode = WAL')
   db.pragma('foreign_keys = ON')

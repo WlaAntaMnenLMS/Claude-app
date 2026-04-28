@@ -1,6 +1,7 @@
-import { ipcMain, BrowserWindow } from 'electron'
+import { ipcMain, BrowserWindow, app } from 'electron'
 import { startNetworkServer, stopNetworkServer, isServerRunning } from '../server/network-server'
-import { getDb } from '../services/db.service'
+import { getDb, getDbFilePath, setDbFilePath } from '../services/db.service'
+import path from 'path'
 
 export function registerNetworkIpc(win: BrowserWindow | null) {
   const db = getDb()
@@ -30,6 +31,19 @@ export function registerNetworkIpc(win: BrowserWindow | null) {
   })
 
   ipcMain.handle('network:isRunning', () => isServerRunning())
+
+  // ── Shared database path ─────────────────────────────────────────────────────
+  ipcMain.handle('network:getDbPath', () => getDbFilePath())
+
+  ipcMain.handle('network:setDbPath', (_e, newPath: string) => {
+    setDbFilePath(newPath.trim())
+    return { success: true }
+  })
+
+  ipcMain.handle('network:getDefaultDbPath', () => {
+    const userDataPath = app.getPath('userData')
+    return path.join(userDataPath, 'db', 'ld-assistant.db')
+  })
 
   // Test connection to a remote server using Node's built-in http
   ipcMain.handle('network:testConnection', (_e, host: string, port: number) => {

@@ -52,6 +52,30 @@ export default function SettingsPage() {
   })
   const [defaultsSaved, setDefaultsSaved] = useState(false)
 
+  // ── Shared Database ───────────────────────────────────────────────────────────
+  const [dbPath, setDbPath]       = useState('')
+  const [dbSaved, setDbSaved]     = useState(false)
+  const [dbMsg, setDbMsg]         = useState('')
+
+  useEffect(() => {
+    (window as any).api.network.getDbPath().then((p: string) => setDbPath(p))
+  }, [])
+
+  async function saveDbPath() {
+    if (!dbPath.trim()) return
+    await (window as any).api.network.setDbPath(dbPath.trim())
+    setDbSaved(true); setDbMsg('Saved — restart the app for changes to take effect')
+    setTimeout(() => { setDbSaved(false); setDbMsg('') }, 5000)
+  }
+
+  async function resetDbPath() {
+    const def = await (window as any).api.network.getDefaultDbPath()
+    setDbPath(def)
+    await (window as any).api.network.setDbPath(def)
+    setDbMsg('Reset to local path — restart the app')
+    setTimeout(() => setDbMsg(''), 5000)
+  }
+
   // ── Change PIN ────────────────────────────────────────────────────────────────
   const [currentPin, setCurrentPin]   = useState('')
   const [newPin, setNewPin]           = useState('')
@@ -235,6 +259,37 @@ export default function SettingsPage() {
             Save Settings
           </button>
           {netMsg && <p className="text-sm text-green-400">{netMsg}</p>}
+        </div>
+      </Section>
+
+      {/* ── Shared Database ───────────────────────────────────────────────────── */}
+      <Section icon={<Wifi className="w-5 h-5 text-green-400" />} bg="bg-green-500/10"
+        title="Shared Database" sub="Point all office PCs to the same database file for live sync">
+        <div className="space-y-3">
+          <div>
+            <label className={label}>Database file path</label>
+            <input value={dbPath} onChange={e => setDbPath(e.target.value)}
+              placeholder="C:\LDAssistant\ld-assistant.db or \\PC-NAME\LDAssistant\ld-assistant.db"
+              className={input} />
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <button onClick={saveDbPath}
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90">
+              <Save className="w-3.5 h-3.5" /> Save & Restart
+            </button>
+            <button onClick={resetDbPath}
+              className="px-3 py-2 bg-secondary hover:bg-accent border border-border rounded-lg text-sm text-muted-foreground">
+              Reset to local
+            </button>
+            {dbMsg && <p className={`text-sm ${dbSaved ? 'text-green-400' : 'text-yellow-400'}`}>{dbMsg}</p>}
+          </div>
+          <div className="p-3 bg-secondary/60 rounded-lg text-xs text-muted-foreground space-y-1">
+            <p className="font-medium text-foreground">How to share across office PCs:</p>
+            <p>1. On the main PC: create folder <code className="bg-card px-1 rounded">C:\LDAssistant</code> → right-click → Properties → Sharing → Share to Everyone</p>
+            <p>2. On the main PC: set path above to <code className="bg-card px-1 rounded">C:\LDAssistant\ld-assistant.db</code> → Save → restart app once</p>
+            <p>3. On each other PC: set path to <code className="bg-card px-1 rounded">{'\\\\MAIN-PC-NAME\\LDAssistant\\ld-assistant.db'}</code> → Save → restart</p>
+            <p>4. Everyone now reads/writes the same file — login accounts + all data are shared</p>
+          </div>
         </div>
       </Section>
 
