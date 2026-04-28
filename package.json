@@ -91,7 +91,9 @@
     },
     "win": {
       "target": "nsis",
-      "icon": "assets/icons/app-icon.ico"
+      "icon": "assets/icons/app-icon.ico",
+      "signAndEditExecutable": false
     }
-  }
+  },
+  "author": "Trainnovation"
 }

@@ -48,6 +48,8 @@ declare global {
       certificate: {
         list: () => Promise<any[]>
         bulkFill: (data: any) => Promise<any>
+        previewExcel: (excelPath: string) => Promise<{ headers: string[]; rows: string[][]; sheetName: string; rowCount: number }>
+        fillFromExcel: (data: any) => Promise<{ results: any[]; outputDir: string }>
         templates: {
           list: () => Promise<any[]>
           upload: (data: any) => Promise<any>
@@ -80,6 +82,8 @@ declare global {
         exportWorkbook: (data: any) => Promise<{ outputPath: string }>
         launch: (exePath: string) => Promise<{ success: boolean; error?: string }>
         openFolder: (folderPath: string) => Promise<{ success: boolean }>
+        scanTemplate: (templatePath: string) => Promise<string[]>
+        fillTemplates: (data: any) => Promise<{ results: any[]; outputDir: string }>
       }
       shell: {
         openPath: (p: string) => Promise<void>

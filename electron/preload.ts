@@ -56,8 +56,10 @@ contextBridge.exposeInMainWorld('api', {
 
   // ── Certificates ─────────────────────────────────────────────────────
   certificate: {
-    list:     ()          => ipcRenderer.invoke('certificate:list'),
-    bulkFill: (data: any) => ipcRenderer.invoke('certificate:bulkFill', data),
+    list:          ()                  => ipcRenderer.invoke('certificate:list'),
+    bulkFill:      (data: any)         => ipcRenderer.invoke('certificate:bulkFill', data),
+    previewExcel:  (p: string)         => ipcRenderer.invoke('certificate:previewExcel', p),
+    fillFromExcel: (data: any)         => ipcRenderer.invoke('certificate:fillFromExcel', data),
     templates: {
       list:   ()          => ipcRenderer.invoke('certTemplate:list'),
       upload: (data: any) => ipcRenderer.invoke('certTemplate:upload', data),
@@ -133,6 +135,8 @@ contextBridge.exposeInMainWorld('api', {
     exportWorkbook: (data: any)          => ipcRenderer.invoke('rbc:exportWorkbook', data),
     launch:         (exePath: string)    => ipcRenderer.invoke('rbc:launch', exePath),
     openFolder:     (folderPath: string) => ipcRenderer.invoke('rbc:openFolder', folderPath),
+    scanTemplate:   (templatePath: string) => ipcRenderer.invoke('rbc:scanTemplate', templatePath),
+    fillTemplates:  (data: any)          => ipcRenderer.invoke('rbc:fillTemplates', data),
   },
 
   // ── Excel export ─────────────────────────────────────────────────────

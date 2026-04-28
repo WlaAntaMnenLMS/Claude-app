@@ -6,32 +6,27 @@ import http from 'http'
 
 interface Message { role: 'user' | 'assistant'; content: string }
 
-const BASE_SYSTEM = `You are JARVIS, an AI assistant for Ahmed Younes, a Learning & Development Manager at Trainnovation in Cairo, Egypt.
+const BASE_SYSTEM = `You are JARVIS, the smart AI assistant for the L&D Assistant app at Trainnovation, Cairo.
+You work for the L&D manager (Ahmed Younes). You have FULL access to the live database via the snapshot below.
 
-You help with these tasks:
-1. Instructor hiring & tracking (finding, scheduling demos, evaluating)
-2. Demo session scheduling (calendar, reminders, feedback)
-3. Training proposal writing (for clients, using templates)
-4. Certificate filling (bulk generation from DOCX templates)
-5. Transcript filling (learner course records)
-6. Doxx orders (physical printing of certificates/transcripts)
-7. General L&D advice
+RULES:
+- ALWAYS answer questions using the snapshot data — names, counts, dates.
+- DO NOT just say "go to the page". Actually answer the question first, THEN optionally mention the page.
+- Keep replies concise (2–4 sentences max).
+- Match the user's language (Arabic or English).
+- When asked about upcoming demos: list the name, date, and topic.
+- When asked about instructors: list names and statuses.
+- When asked about counts: give the exact number from snapshot.
+- For actions (schedule demo, write proposal, create certificate): describe what to do AND set action+route so the UI can navigate.
 
-A LIVE DATABASE SNAPSHOT is appended to this prompt — use it to answer questions about actual data.
-When the user asks "who has a demo scheduled", "upcoming demos", "what's next", etc., use the snapshot data to give specific names and dates.
-Format dates as human-readable (e.g. "10 January 2026").
-
-When the user sends a message, ALWAYS respond with valid JSON:
+RESPOND with valid JSON only:
 {
   "intent": "schedule_demo | hire_instructor | write_proposal | fill_certificate | fill_transcript | doxx_order | view_instructors | view_demos | view_proposals | view_certificates | view_transcripts | view_doxx | general",
   "entities": {},
-  "response": "Natural language reply in English or Arabic matching user's language",
-  "action": "navigate | fill_form | show_info | ask_clarification | none",
+  "response": "Your answer here — cite real names/numbers from the snapshot",
+  "action": "navigate | show_info | none",
   "route": "/instructors | /demos | /proposals | /certificates | /transcripts | /doxx | null"
-}
-
-Always respond in the same language the user writes in (Arabic or English).
-Be concise, friendly, and professional. When answering data questions, list actual names and dates from the snapshot.`
+}`
 
 function buildDbSnapshot(): string {
   const db = getDb()
@@ -141,7 +136,7 @@ async function queryClaude(messages: Message[], systemPrompt: string): Promise<s
   const client = new Anthropic()
   const response = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 600,
+    max_tokens: 1024,
     system: systemPrompt,
     messages,
   })
@@ -150,23 +145,61 @@ async function queryClaude(messages: Message[], systemPrompt: string): Promise<s
 
 function fallbackResponse(userMessage: string): object {
   const lower = userMessage.toLowerCase()
-  let intent = 'general', route: string | null = null
-  let response = "I'm here to help! What would you like to do?"
+  const db = getDb()
 
-  if (lower.includes('demo') || lower.includes('schedule')) {
-    intent = 'schedule_demo'; route = '/demos'; response = "Let me open the Demo Sessions for you."
-  } else if (lower.includes('instructor') || lower.includes('hire')) {
-    intent = 'view_instructors'; route = '/instructors'; response = "Opening Instructor Hiring."
-  } else if (lower.includes('proposal')) {
-    intent = 'write_proposal'; route = '/proposals'; response = "Opening the Proposal Writer."
-  } else if (lower.includes('certificate') || lower.includes('cert')) {
-    intent = 'fill_certificate'; route = '/certificates'; response = "Opening Certificate Filler."
-  } else if (lower.includes('transcript')) {
-    intent = 'fill_transcript'; route = '/transcripts'; response = "Opening the Transcript module."
-  } else if (lower.includes('doxx') || lower.includes('print') || lower.includes('order')) {
-    intent = 'doxx_order'; route = '/doxx'; response = "Opening Doxx Orders."
+  // Try to answer from live data
+  if (lower.includes('demo') || lower.includes('schedule') || lower.includes('upcoming') || lower.includes('next')) {
+    const now = Math.floor(Date.now() / 1000)
+    const upcoming = (db.prepare(`
+      SELECT d.scheduled_at, d.topic, i.full_name AS name
+      FROM demo_sessions d LEFT JOIN instructors i ON d.instructor_id = i.id
+      WHERE d.scheduled_at > ? ORDER BY d.scheduled_at ASC LIMIT 3
+    `).all(now) as any[])
+    if (upcoming.length > 0) {
+      const list = upcoming.map(d => {
+        const date = new Date(d.scheduled_at * 1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+        return `${d.name || 'Unknown'} on ${date}${d.topic ? ` (${d.topic})` : ''}`
+      }).join('; ')
+      return { intent: 'view_demos', entities: {}, response: `Upcoming demos: ${list}.`, action: 'navigate', route: '/demos' }
+    }
+    return { intent: 'view_demos', entities: {}, response: 'No upcoming demos are scheduled right now.', action: 'navigate', route: '/demos' }
   }
-  return { intent, entities: {}, response, action: route ? 'navigate' : 'show_info', route }
+
+  if (lower.includes('instructor') || lower.includes('hire') || lower.includes('applicant')) {
+    const instructors = (db.prepare('SELECT full_name, status FROM instructors ORDER BY created_at DESC LIMIT 5').all() as any[])
+    if (instructors.length > 0) {
+      const list = instructors.map(i => `${i.full_name} (${i.status})`).join(', ')
+      return { intent: 'view_instructors', entities: {}, response: `Current instructors: ${list}.`, action: 'navigate', route: '/instructors' }
+    }
+    return { intent: 'view_instructors', entities: {}, response: 'No instructors added yet.', action: 'navigate', route: '/instructors' }
+  }
+
+  if (lower.includes('proposal')) {
+    const count = (db.prepare('SELECT COUNT(*) as n FROM proposals').get() as any)?.n || 0
+    return { intent: 'write_proposal', entities: {}, response: `You have ${count} proposal(s). Open Proposals to write a new one or view existing ones.`, action: 'navigate', route: '/proposals' }
+  }
+
+  if (lower.includes('certificate') || lower.includes('cert') || lower.includes('شهادة')) {
+    const count = (db.prepare('SELECT COUNT(*) as n FROM certificates').get() as any)?.n || 0
+    const learners = (db.prepare('SELECT COUNT(*) as n FROM learners').get() as any)?.n || 0
+    return { intent: 'fill_certificate', entities: {}, response: `You have ${count} certificate(s) issued for ${learners} learner(s) in the database.`, action: 'navigate', route: '/certificates' }
+  }
+
+  if (lower.includes('transcript')) {
+    const count = (db.prepare('SELECT COUNT(*) as n FROM transcripts').get() as any)?.n || 0
+    return { intent: 'fill_transcript', entities: {}, response: `You have ${count} transcript(s) on record.`, action: 'navigate', route: '/transcripts' }
+  }
+
+  if (lower.includes('doxx') || lower.includes('print') || lower.includes('order')) {
+    return { intent: 'doxx_order', entities: {}, response: 'Open Doxx Orders to track physical certificate printing requests.', action: 'navigate', route: '/doxx' }
+  }
+
+  if (lower.includes('learner') || lower.includes('student')) {
+    const count = (db.prepare('SELECT COUNT(*) as n FROM learners').get() as any)?.n || 0
+    return { intent: 'general', entities: {}, response: `There are ${count} learner(s) in the database. Go to Certificates → Learners to manage them.`, action: 'show_info', route: null }
+  }
+
+  return { intent: 'general', entities: {}, response: "I'm here to help. Ask me about demos, instructors, proposals, certificates, or learners.", action: 'none', route: null }
 }
 
 export function registerAgentIpc() {
