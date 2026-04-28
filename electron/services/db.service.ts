@@ -209,18 +209,12 @@ function initSchema(db: Database.Database) {
     );
   `)
 
-  // Seed default admin user if no users exist
-  const userCount = (db.prepare('SELECT COUNT(*) as c FROM users').get() as any).c
-  if (userCount === 0) {
-    db.prepare(`
-      INSERT INTO users (name, email, pin_hash, role)
-      VALUES (?, ?, ?, ?)
-    `).run('Ahmed Younes', 'ahmed@trainnovation.com', '1234', 'manager')
-    db.prepare(`
-      INSERT INTO users (name, email, pin_hash, role)
-      VALUES (?, ?, ?, ?)
-    `).run('Specialist', 'specialist@trainnovation.com', '0000', 'specialist')
-  }
+  // Ensure core accounts always exist (INSERT OR IGNORE = never overwrite an existing account)
+  const ensureUser = db.prepare(`
+    INSERT OR IGNORE INTO users (name, email, pin_hash, role) VALUES (?, ?, ?, ?)
+  `)
+  ensureUser.run('Ahmed Younes',   'ahmed_younes@tig-uk.co.uk',   '1887366', 'manager')
+  ensureUser.run('Tasneem Khaled', 'tasneem_khaled@tig-uk.co.uk', '12345',   'specialist')
 
   // Seed default network settings if missing
   const netCount = (db.prepare('SELECT COUNT(*) as c FROM network_settings').get() as any).c

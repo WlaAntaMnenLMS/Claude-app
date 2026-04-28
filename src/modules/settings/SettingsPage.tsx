@@ -52,6 +52,25 @@ export default function SettingsPage() {
   })
   const [defaultsSaved, setDefaultsSaved] = useState(false)
 
+  // ── Change PIN ────────────────────────────────────────────────────────────────
+  const [currentPin, setCurrentPin]   = useState('')
+  const [newPin, setNewPin]           = useState('')
+  const [confirmPin, setConfirmPin]   = useState('')
+  const [pinMsg, setPinMsg]           = useState('')
+  const [pinOk, setPinOk]             = useState(false)
+
+  async function changePin() {
+    if (!newPin || newPin.length < 4) { setPinOk(false); setPinMsg('New PIN must be at least 4 characters'); return }
+    if (newPin !== confirmPin)        { setPinOk(false); setPinMsg('PINs do not match'); return }
+    // Verify current PIN first
+    const check = await (window as any).api.auth.login(user?.email, currentPin)
+    if (!check.ok) { setPinOk(false); setPinMsg('Current PIN is incorrect'); return }
+    await (window as any).api.auth.updateUser(user!.id, { email: user!.email, name: user!.name, role: user!.role, pin: newPin, active: true })
+    setCurrentPin(''); setNewPin(''); setConfirmPin('')
+    setPinOk(true); setPinMsg('PIN changed successfully!')
+    setTimeout(() => setPinMsg(''), 4000)
+  }
+
   useEffect(() => { loadNet() }, [])
 
   async function loadNet() {
@@ -355,12 +374,37 @@ export default function SettingsPage() {
         </div>
       </Section>
 
-      {/* ── Current user ──────────────────────────────────────────────────────── */}
-      <Section icon={<Users className="w-5 h-5 text-primary" />} bg="bg-primary/10"
-        title="Signed In As" sub={user?.email || ''}>
-        <span className={`text-xs px-2 py-1 rounded-full font-medium ${user?.role === 'manager' ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'}`}>
-          {user?.role === 'manager' ? 'Manager' : 'Specialist'}
-        </span>
+      {/* ── Change PIN ────────────────────────────────────────────────────────── */}
+      <Section icon={<Users className="w-5 h-5 text-yellow-400" />} bg="bg-yellow-500/10"
+        title="Change My PIN" sub={`Signed in as ${user?.email || ''} · ${user?.role}`}>
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className={label}>Current PIN</label>
+              <input type="password" value={currentPin} onChange={e => setCurrentPin(e.target.value)}
+                placeholder="Current PIN" className={input} />
+            </div>
+            <div>
+              <label className={label}>New PIN</label>
+              <input type="password" value={newPin} onChange={e => setNewPin(e.target.value)}
+                placeholder="New PIN (min 4)" className={input} />
+            </div>
+            <div>
+              <label className={label}>Confirm New PIN</label>
+              <input type="password" value={confirmPin} onChange={e => setConfirmPin(e.target.value)}
+                placeholder="Repeat new PIN" className={input} />
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <button onClick={changePin}
+              className="flex items-center gap-2 px-4 py-2 bg-yellow-600/80 text-white rounded-lg text-sm font-medium hover:bg-yellow-600">
+              <Save className="w-3.5 h-3.5" /> Update PIN
+            </button>
+            {pinMsg && (
+              <p className={`text-sm ${pinOk ? 'text-green-400' : 'text-red-400'}`}>{pinMsg}</p>
+            )}
+          </div>
+        </div>
       </Section>
     </div>
   )
